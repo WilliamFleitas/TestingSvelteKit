@@ -5,7 +5,7 @@
 	import NewRealizes from './NewRealizes.svelte';
 	export let data;
 	export let error: any;
-	let movies: MoviesType[] = data.data;
+	let movies: MoviesType[] = data.props.dataDiscover;
 </script>
 
 <article class="container">
