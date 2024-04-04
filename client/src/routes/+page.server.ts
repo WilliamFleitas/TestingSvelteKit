@@ -1,5 +1,5 @@
-// since there's no dynamic data here, we can prerender
-// it so that it gets served as a static asset in production
+import { VITE_API_KEY } from '$env/static/private';
+import { getDiscover } from './api/mainDiscover';
 
 /** @type {import('$types').PageLoad} */
 export const prerender = true;
@@ -19,30 +19,37 @@ export interface MoviesType {
     vote_average?: number;
     first_air_date?: string;
 };
+export interface HeaderOptionsType {
+    method: string;
+    headers: { accept: string; Authorization: string;}
+}
 export async function load() {
-    try {
-        
-        const url = 'https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc';
-
-        const options = {
-            method: 'GET',
-            headers: {
-                accept: 'application/json',
-                Authorization: 'Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiJlOGE3NTFmNmE4ODk1NDVjYzYwNmQ3NTIyZTY3YzI4YSIsInN1YiI6IjY2MDM5NzAxMzUyMGU4MDE2NWQ4NDgwZCIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.zPgjrX3zNEu0mHL93Jg5nBDdwV0VujBWTBWN_uP2wcc'
-            }
-        };
-        const response = await fetch(url, options);
-        if (!response.ok) {
-            throw new Error('There was an error fetching the data');
+    const getOptions:HeaderOptionsType = {
+        method: 'GET',
+        headers: {
+            accept: 'application/json',
+            Authorization: `Bearer ${VITE_API_KEY}`
         }
+    };
 
-        const res = await response.json();
-        return {data: res.results};
-
-    } catch (error: any) {
-        return {
-            status: 500,
-            error: error.message,
-        };
+    let dataDiscover, discoverError;
+    try {
+      const discoverRes = await getDiscover(getOptions);
+      if (discoverRes.status !== 200) {
+        discoverError = `Error en la función 1:`;
+      } else {
+        dataDiscover = await discoverRes.dataDiscover;
+      }
+    } catch (e: any) {
+        discoverError = e.message;
     }
+
+    
+  return {
+    props: {
+        dataDiscover: dataDiscover || null,
+        discoverError: discoverError || null,
+    }
+  };
+  
 };
