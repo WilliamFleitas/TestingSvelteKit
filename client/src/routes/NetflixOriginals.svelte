@@ -1,11 +1,18 @@
 <script lang="ts">
+	type CategoryType =
+		| 'Trending'
+		| 'Top Rated'
+		| 'Action Movies'
+		| 'Comedy'
+		| 'Documentary'
+		| 'netflixOriginals';
+
 	import { Splide, SplideSlide } from '@splidejs/svelte-splide';
 	import '@splidejs/svelte-splide/css';
 	import type { MoviesType } from './+page.server';
-	import { getCategoryBy, type CategoryType } from '../routes/api/tmbApi';
 	import { onMount } from 'svelte';
 	import CurrentMovie from './CurrentMovie.svelte';
-
+	let categoryError;
 	let categoryResults: MoviesType[] = [];
 	const carrouselOptions = {
 		type: 'loop',
@@ -52,7 +59,17 @@
 	}
 
 	onMount(async () => {
-		categoryResults = await getCategoryBy('netflixOriginals');
+		try {
+			const response = await fetch(`/api/getCategoryBy/netflixOriginals`);
+			if (response.ok) {
+				const data = await response.json();
+				categoryResults = data.data;
+			} else {
+				throw new Error('There was an error fetching the data');
+			}
+		} catch (error: any) {
+			categoryError = error.message;
+		}
 	});
 </script>
 
